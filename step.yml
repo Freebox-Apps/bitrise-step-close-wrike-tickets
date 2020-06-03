@@ -10,7 +10,7 @@
 title: |-
   Close Wrike Tickets
 summary: |
-  Automatically change referenced Wrike tickets status
+  Automatically change Wrike tickets status referenced in commit log
 description: |
   Automatically change referenced Wrike tickets status
 website: https://gitlab.com/freebox/bitrise-step-close-wrike-tickets.git
@@ -50,13 +50,6 @@ is_skippable: false
 run_if: ""
 
 deps:
-  brew:
-  - name: git
-  - name: wget
-  apt_get:
-  - name: git
-  - name: wget
-
 
 toolkit:
   bash:
@@ -64,24 +57,65 @@ toolkit:
 
 
 inputs:
-  - example_step_input: Default Value - you can leave this empty if you want to
+  - wrike_token: ""
     opts:
-      title: "Example Step Input"
-      summary: Summary. No more than 2-3 sentences.
-      description: |
-        Description of this input.
-
-        Can be Markdown formatted text.
-      is_expand: true
+      title: Wrike API Token
+      description: Create a permanent API token in Wrike settings to allow Bitrise to access  it.
+      is_expand: false
       is_required: true
-      value_options: []
-
-outputs:
-  - EXAMPLE_STEP_OUTPUT:
+      is_sensitive: true
+  - version: $EXTRACTED_ANDROID_VERSION_NAME
     opts:
-      title: "Example Step Output"
-      summary: Summary. No more than 2-3 sentences.
+      title: Application version name
+      description: The version name used to update Wrike tasks
+      is_expand: false
+      is_required: true
+  - tag_prefix: deploy
+    opts:
+      title: Tag prefix
       description: |
-        Description of this output.
-
-        Can be Markdown formatted text.
+        Prefix used to filter tags when searching for the last tag.
+        Leave empty for no filtering
+      is_expand: false
+      is_required: false
+  - resolve_status_id: IEACSBN3JMBE4JJQ
+    opts:
+      title: Resolve status ID
+      category: Wrike fields
+      description: |
+        Wrike ID of the new status to apply to tasks referenced with "resolve" keyword.
+         
+        You can find all statuses by calling Wrike workflows API : https://www.wrike.com/api/v4/workflows
+      is_expand: false
+      is_required: true
+  - end_status_id: IEACSBN3JMBFHZV6
+    opts:
+      title: End status ID
+      category: Wrike fields
+      description: |
+        Wrike ID of the new status to apply to tasks referenced with "end" keyword.
+         
+        You can find all statuses by calling Wrike workflows API : https://www.wrike.com/api/v4/workflows
+      is_expand: false
+      is_required: true
+  - resolved_version_custom_field_id: IEACSBN3JUABFXVG
+    opts:
+      title: Resolved version custom field ID
+      category: Wrike fields
+      description: |
+        Wrike ID of the custom field to set to the build version for tasks referenced with "resolve" keyword.
+         
+        You can find all custom fields by calling Wrike customfields API : https://www.wrike.com/api/v4/customfields
+      is_expand: false
+      is_required: true
+  - reviewed_version_custom_field_id: IEACSBN3JUABFQAE
+    opts:
+      title: Resolved version custom field ID
+      category: Wrike fields
+      description: |
+        Wrike ID of the custom field to add the build version to its available values.
+         
+        You can find all custom fields by calling Wrike customfields API : https://www.wrike.com/api/v4/customfields
+      is_expand: false
+      is_required: true
+outputs:

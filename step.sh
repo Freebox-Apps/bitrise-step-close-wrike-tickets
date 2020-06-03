@@ -1,22 +1,122 @@
 #!/bin/bash
-set -ex
 
-echo "This is the value specified for the input 'example_step_input': ${example_step_input}"
+#########################################
+# Get interesting infos from commit log #
+#########################################
 
-#
-# --- Export Environment Variables for other Steps:
-# You can export Environment Variables for other Steps with
-#  envman, which is automatically installed by `bitrise setup`.
-# A very simple example:
-envman add --key EXAMPLE_STEP_OUTPUT --value 'the value you want to share'
-# Envman can handle piped inputs, which is useful if the text you want to
-# share is complex and you don't want to deal with proper bash escaping:
-#  cat file_with_complex_input | envman add --KEY EXAMPLE_STEP_OUTPUT
-# You can find more usage examples on envman's GitHub page
-#  at: https://github.com/bitrise-io/envman
+tags=$(git tag -l $tag_prefix* --sort=-version:refname)
+head_tag=$(git tag -l $tag_prefix* --sort=-version:refname --points-at | sed -n '1p') # sed takes the first line
+last_tag="master"
+for tag in ${tags}; do
+    if [ "$tag" != "$head_tag" ]; then
+        last_tag=$tag
+        break;  
+    fi
+done
+commit_lines=$(git log -P --grep "(resolve|end) (#\d+,?)+" --pretty=%b $last_tag..HEAD | sed '/^$/d') # sed removes empty lines
 
-#
-# --- Exit codes:
-# The exit code of your Step is very important. If you return
-#  with a 0 exit code `bitrise` will register your Step as "successful".
-# Any non zero exit code will be registered as "failed" by `bitrise`.
+echo "########################"
+echo "> search commit between $last_tag and $head_tag" 
+echo "- found:"
+printf "$commit_lines \n"
+echo "########################"
+
+
+########################
+# Fetch Wrike task ids #
+########################
+
+end_ids=""
+resolve_ids=""
+
+IFS=$'\n'
+for commit in ${commit_lines}; do
+    echo "-------------------------"
+    echo "> PARSE :" $commit
+    #extract method
+    method=$(echo $commit | grep -Po "(resolve|end)" )
+    echo "- method =" $method
+
+    #extract ids
+    id_str=$(echo $commit | grep -Po "(#\d+,?)+")
+    echo "- ids =" $id_str
+
+    if [ -z "$method" ] || [ -z "$id_str" ]; then
+        continue
+    fi
+    
+    IFS=',' # word delimiter
+    read -ra ADDR <<< "$id_str" # str is read into an array as tokens separated by IFS
+    for permalink_id in "${ADDR[@]}"; do # access each element of array
+        echo "> REQUEST ID"
+        id=$(curl -s -g -G -X GET \
+            -H "Authorization: bearer $wrike_token" \
+            "https://www.wrike.com/api/v4/tasks" \
+            --data-urlencode "permalink=https://www.wrike.com/open.htm?id=${permalink_id//#/}" \
+            | grep -Po '(?<="id": ").*?[^\\](?=")'
+        )
+        if [ "$method" = "end" ]; then 
+            end_ids="$end_ids$id,"
+        elif [ $method = "resolve" ]; then
+            resolve_ids="$resolve_ids$id,"
+        fi
+        echo "- wrike db id =" $id 
+    done
+    IFS=$'\n' # reset to default value after usage
+done
+
+IFS=' '
+
+echo "########################"
+echo "Extracted end ids : $end_ids"
+echo "Extracted resolve ids : $resolve_ids"
+
+#################
+# Resolve tasks #
+#################
+
+function resolve_task {
+    result=$(curl -s -g -G -X PUT \
+        -H "Authorization: bearer $wrike_token" \
+        "https://www.wrike.com/api/v4/tasks/$1" \
+        -d customStatus=$2 \
+        -d "customFields=[{id=$resolved_version_custom_field_id,value=$version}]"
+    )
+    [ -z "$result" ] && echo "Error !" || echo "OK"
+}
+
+if [ ! -z "$resolve_ids" ]; then
+    echo "########################"
+    echo "> resolve tasks"
+    resolve_task $resolve_ids $resolve_status_id
+fi
+
+if [ ! -z "$end_ids" ]; then
+    echo "########################"
+    echo "> end tasks"
+    resolve_task $end_ids $end_status_id
+fi
+
+######################################
+# update reviewed version value list #
+######################################
+
+echo "########################"
+echo "> update version list"
+    
+versions=$(curl -s -g -G -X GET \
+    -H "Authorization: bearer $wrike_token" \
+    "https://www.wrike.com/api/v4/customfields/$reviewed_version_custom_field_id" \
+    | tr -d '\n' \
+    | grep -Po '(?<="values": \[).*?[^\\](?=\])'
+)
+
+result=$(curl -s -g -G -X PUT \
+    -H "Authorization: bearer $wrike_token" \
+    "https://www.wrike.com/api/v4/customfields/$reviewed_version_custom_field_id" \
+    --data-urlencode "settings={values=[\"$version\",${versions//  /}]}"
+)
+
+[ -z "$result" ] && echo "Error !" || echo "OK"
+	
+echo "Done."
