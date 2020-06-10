@@ -13,7 +13,7 @@ for tag in ${tags}; do
         break;
     fi
 done
-commit_lines=$(git log -P --grep "(resolve|end) (#\d+,?)+" --pretty=%b $last_tag..HEAD | sed '/^$/d') # sed removes empty lines
+commit_lines=$(git log --pretty=%b $last_tag..HEAD | grep -Po "(resolve|end) (#\d+,?)+") # sed removes empty lines
 
 echo "########################"
 echo "> search commit between $last_tag and $head_tag"
