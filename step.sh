@@ -5,7 +5,7 @@
 #########################################
 git fetch --tags
 tags=$(git tag -l $tag_prefix* --sort=-version:refname)
-head_tag=$(git tag -l $tag_prefix* --sort=-version:refname --points-at | sed -n '1p') # sed takes the first line
+head_tag=$(git tag -l $tag_prefix* --sort=-version:refname --points-at HEAD | sed -n '1p') # sed takes the first line
 last_tag="master"
 for tag in ${tags}; do
     if [ "$tag" != "$head_tag" ]; then
