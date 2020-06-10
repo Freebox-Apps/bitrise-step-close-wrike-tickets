@@ -3,20 +3,20 @@
 #########################################
 # Get interesting infos from commit log #
 #########################################
-
+git fetch --tags
 tags=$(git tag -l $tag_prefix* --sort=-version:refname)
 head_tag=$(git tag -l $tag_prefix* --sort=-version:refname --points-at | sed -n '1p') # sed takes the first line
 last_tag="master"
 for tag in ${tags}; do
     if [ "$tag" != "$head_tag" ]; then
         last_tag=$tag
-        break;  
+        break;
     fi
 done
 commit_lines=$(git log -P --grep "(resolve|end) (#\d+,?)+" --pretty=%b $last_tag..HEAD | sed '/^$/d') # sed removes empty lines
 
 echo "########################"
-echo "> search commit between $last_tag and $head_tag" 
+echo "> search commit between $last_tag and $head_tag"
 echo "- found:"
 printf "$commit_lines \n"
 echo "########################"
@@ -44,7 +44,7 @@ for commit in ${commit_lines}; do
     if [ -z "$method" ] || [ -z "$id_str" ]; then
         continue
     fi
-    
+
     IFS=',' # word delimiter
     read -ra ADDR <<< "$id_str" # str is read into an array as tokens separated by IFS
     for permalink_id in "${ADDR[@]}"; do # access each element of array
@@ -55,12 +55,12 @@ for commit in ${commit_lines}; do
             --data-urlencode "permalink=https://www.wrike.com/open.htm?id=${permalink_id//#/}" \
             | grep -Po '(?<="id": ").*?[^\\](?=")'
         )
-        if [ "$method" = "end" ]; then 
+        if [ "$method" = "end" ]; then
             end_ids="$end_ids$id,"
         elif [ $method = "resolve" ]; then
             resolve_ids="$resolve_ids$id,"
         fi
-        echo "- wrike db id =" $id 
+        echo "- wrike db id =" $id
     done
     IFS=$'\n' # reset to default value after usage
 done
@@ -103,7 +103,7 @@ fi
 
 echo "########################"
 echo "> update version list"
-    
+
 versions=$(curl -s -g -G -X GET \
     -H "Authorization: bearer $wrike_token" \
     "https://www.wrike.com/api/v4/customfields/$reviewed_version_custom_field_id" \
@@ -118,5 +118,5 @@ result=$(curl -s -g -G -X PUT \
 )
 
 [ -z "$result" ] && echo "Error !" || echo "OK"
-	
+
 echo "Done."
