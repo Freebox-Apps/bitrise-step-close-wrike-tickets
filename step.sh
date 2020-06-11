@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [ -z "$wrike_token" ]; then
+    echo "Error: Missing Wrike token !"
+    exit 1
+fi
+
+
 #########################################
 # Get interesting infos from commit log #
 #########################################
