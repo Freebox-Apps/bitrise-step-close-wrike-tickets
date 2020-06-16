@@ -61,14 +61,14 @@ inputs:
     opts:
       title: Wrike API Token
       description: Create a permanent API token in Wrike settings to allow Bitrise to access  it.
-      is_expand: false
+      is_expand: true
       is_required: true
       is_sensitive: true
   - version: $EXTRACTED_ANDROID_VERSION_NAME
     opts:
       title: Application version name
       description: The version name used to update Wrike tasks
-      is_expand: false
+      is_expand: true
       is_required: true
   - tag_prefix: deploy
     opts:
