@@ -57,7 +57,7 @@ toolkit:
 
 
 inputs:
-  - wrike_token: ""
+  - wrike_token:
     opts:
       title: Wrike API Token
       description: Create a permanent API token in Wrike settings to allow Bitrise to access  it.
