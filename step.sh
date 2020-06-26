@@ -82,13 +82,19 @@ echo "Extracted resolve ids : $resolve_ids"
 #################
 
 function resolve_task {
-    result=$(curl -g -G -X PUT \
-        -H "Authorization: bearer $wrike_token" \
-        "https://www.wrike.com/api/v4/tasks/$1" \
-        -d customStatus=$2 \
-        -d "customFields=[{id=$resolved_version_custom_field_id,value=$version}]"
-    )
-    [ -z "$result" ] && echo "Error !" || echo "OK : $result"
+    IFS=','
+    read -ra ADDR <<< "$1" # str is read into an array as tokens separated by IFS
+    for task_id in "${ADDR[@]}"; do # access each element of array
+        echo "- $task_id" 
+        result=$(curl -g -G -X PUT \
+            -H "Authorization: bearer $wrike_token" \
+            "https://www.wrike.com/api/v4/tasks/$task_id" \
+            -d customStatus=$2 \
+            -d "customFields=[{id=$resolved_version_custom_field_id,value=$version}]"
+        )
+        [ -z "$result" ] && echo "Error !" || echo "OK : $result"
+    done
+    IFS=' '
 }
 
 if [ ! -z "$resolve_ids" ]; then
