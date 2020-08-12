@@ -1,4 +1,5 @@
 #!/bin/bash
+#set -x
 
 if [ -z "$wrike_token" ]; then
     echo "Error: Missing Wrike token !"
@@ -10,9 +11,9 @@ fi
 # Get interesting infos from commit log #
 #########################################
 git fetch --tags
-tags=$(git tag -l $tag_prefix* --sort=-version:refname)
-head_tag=$(git tag -l $tag_prefix* --sort=-version:refname --points-at HEAD | sed -n '1p') # sed takes the first line
-last_tag="master"
+tags=$(git tag -l $tag_pattern --sort=-version:refname)
+head_tag=$(git tag -l $tag_pattern --sort=-version:refname --points-at HEAD | sed -n '1p') # sed takes the first line
+last_tag="HEAD"
 for tag in ${tags}; do
     if [ "$tag" != "$head_tag" ]; then
         last_tag=$tag
@@ -55,16 +56,19 @@ for commit in ${commit_lines}; do
     read -ra ADDR <<< "$id_str" # str is read into an array as tokens separated by IFS
     for permalink_id in "${ADDR[@]}"; do # access each element of array
         echo "> REQUEST ID"
-        id=$(curl -s -g -G -X GET \
+        task_json=$(curl -s -g -G -X GET \
             -H "Authorization: bearer $wrike_token" \
             "https://www.wrike.com/api/v4/tasks" \
-            --data-urlencode "permalink=https://www.wrike.com/open.htm?id=${permalink_id//#/}" \
-            | grep -Po '(?<="id": ").*?[^\\](?=")'
+            --data-urlencode "permalink=https://www.wrike.com/open.htm?id=${permalink_id//#/}"
         )
-        if [ "$method" = "end" ]; then
+	      custom_status=$(echo "$task_json" | grep -Po '(?<="customStatusId": ").*?[^\\](?=")')
+   	    id=$(echo "$task_json" | grep -Po '(?<="id": ").*?[^\\](?=")')
+        if [ "$method" = "end" ] && [ "$custom_status" = "$end_required_status_id" ]; then
             end_ids="$end_ids$id,"
-        elif [ $method = "resolve" ]; then
+        elif [ $method = "resolve" ] && [ "$custom_status" = "$resolve_required_status_id" ]; then
             resolve_ids="$resolve_ids$id,"
+        else
+            echo "/!\ skipped because task status is unexpected"
         fi
         echo "- wrike db id =" $id
     done

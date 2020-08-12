@@ -70,12 +70,12 @@ inputs:
       description: The version name used to update Wrike tasks
       is_expand: true
       is_required: true
-  - tag_prefix: deploy
+  - tag_pattern: deploy_*_dev
     opts:
-      title: Tag prefix
+      title: Tag pattern
       description: |
-        Prefix used to filter tags when searching for the last tag.
-        Leave empty for no filtering
+        Pattern used to filter tags when searching for the last tag.
+        Set * for no filtering
       is_expand: false
       is_required: false
   - resolve_status_id: IEACSBN3JMBE4JJQ
@@ -96,6 +96,22 @@ inputs:
         Wrike ID of the new status to apply to tasks referenced with "end" keyword.
          
         You can find all statuses by calling Wrike workflows API : https://www.wrike.com/api/v4/workflows
+      is_expand: false
+      is_required: true
+  - resolve_required_status_id: IEACSBN3JMBNYV2C
+    opts:
+      title: Resolve required status id
+      category: Wrike fields
+      description: |
+        Wrike id of the status tasks require in order to be resolved
+      is_expand: false
+      is_required: true
+  - end_required_status_id: IEACSBN3JMBFKB52
+    opts:
+      title: End required status id
+      category: Wrike fields
+      description: |
+        Wrike id of the status tasks require in order to be ended
       is_expand: false
       is_required: true
   - resolved_version_custom_field_id: IEACSBN3JUABFXVG
