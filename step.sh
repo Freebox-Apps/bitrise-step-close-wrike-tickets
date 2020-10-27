@@ -11,16 +11,7 @@ fi
 # Get interesting infos from commit log #
 #########################################
 git fetch --tags
-tags=$(git tag -l $tag_pattern --sort=-version:refname)
-head_tag=$(git tag -l $tag_pattern --sort=-version:refname --points-at HEAD | sed -n '1p') # sed takes the first line
-last_tag="HEAD"
-for tag in ${tags}; do
-    if [ "$tag" != "$head_tag" ]; then
-        last_tag=$tag
-        break;
-    fi
-done
-commit_lines=$(git log --pretty=%b $last_tag..HEAD | grep -Po "(resolve|end) (#\d+,?)+") # sed removes empty lines
+commit_lines=$(git log --pretty=%b $oldest_commit..$newest_commit | grep -Po "(resolve|end) (#\d+,?)+") # sed removes empty lines
 
 echo "########################"
 echo "> search commit between $last_tag and $head_tag"

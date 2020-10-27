@@ -70,14 +70,20 @@ inputs:
       description: The version name used to update Wrike tasks
       is_expand: true
       is_required: true
-  - tag_pattern: deploy_*_dev
+  - oldest_commit:
     opts:
-      title: Tag pattern
+      title: Oldest commit
       description: |
-        Pattern used to filter tags when searching for the last tag.
-        Set * for no filtering
-      is_expand: false
-      is_required: false
+        The oldest commit to parse the commit log from
+      is_expand: true
+      is_required: true
+  - newest_commit: HEAD
+    opts:
+      title: Newest commit
+      description: |
+        The newest commit used to parse the commit log
+      is_expand: true
+      is_required: true
   - resolve_status_id: IEACSBN3JMBE4JJQ
     opts:
       title: Resolve status ID
