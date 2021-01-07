@@ -106,7 +106,7 @@ inputs:
       is_required: true
   - resolve_required_status_id: IEACSBN3JMBNYV2C
     opts:
-      title: Resolve required status id
+      title: Resolve required status ID
       category: Wrike fields
       description: |
         Wrike id of the status tasks require in order to be resolved
@@ -114,7 +114,7 @@ inputs:
       is_required: true
   - end_required_status_id: IEACSBN3JMBFKB52
     opts:
-      title: End required status id
+      title: End required status ID
       category: Wrike fields
       description: |
         Wrike id of the status tasks require in order to be ended
@@ -132,7 +132,7 @@ inputs:
       is_required: true
   - reviewed_version_custom_field_id: IEACSBN3JUABFQAE
     opts:
-      title: Resolved version custom field ID
+      title: Reviewed version custom field ID
       category: Wrike fields
       description: |
         Wrike ID of the custom field to add the build version to its available values.
