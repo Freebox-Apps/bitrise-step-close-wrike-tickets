@@ -92,7 +92,7 @@ inputs:
         Wrike ID of the new status to apply to tasks referenced with "resolve" keyword.
          
         You can find all statuses by calling Wrike workflows API : https://www.wrike.com/api/v4/workflows
-      is_expand: false
+      is_expand: true
       is_required: true
   - end_status_id: IEACSBN3JMBFHZV6
     opts:
@@ -102,7 +102,7 @@ inputs:
         Wrike ID of the new status to apply to tasks referenced with "end" keyword.
          
         You can find all statuses by calling Wrike workflows API : https://www.wrike.com/api/v4/workflows
-      is_expand: false
+      is_expand: true
       is_required: true
   - resolve_required_status_id: IEACSBN3JMBNYV2C
     opts:
@@ -110,7 +110,7 @@ inputs:
       category: Wrike fields
       description: |
         Wrike id of the status tasks require in order to be resolved
-      is_expand: false
+      is_expand: true
       is_required: true
   - end_required_status_id: IEACSBN3JMBFKB52
     opts:
@@ -118,7 +118,7 @@ inputs:
       category: Wrike fields
       description: |
         Wrike id of the status tasks require in order to be ended
-      is_expand: false
+      is_expand: true
       is_required: true
   - resolved_version_custom_field_id: IEACSBN3JUABFXVG
     opts:
@@ -128,7 +128,7 @@ inputs:
         Wrike ID of the custom field to set to the build version for tasks referenced with "resolve" keyword.
          
         You can find all custom fields by calling Wrike customfields API : https://www.wrike.com/api/v4/customfields
-      is_expand: false
+      is_expand: true
       is_required: true
   - reviewed_version_custom_field_id: IEACSBN3JUABFQAE
     opts:
@@ -138,6 +138,6 @@ inputs:
         Wrike ID of the custom field to add the build version to its available values.
          
         You can find all custom fields by calling Wrike customfields API : https://www.wrike.com/api/v4/customfields
-      is_expand: false
+      is_expand: true
       is_required: true
 outputs:
