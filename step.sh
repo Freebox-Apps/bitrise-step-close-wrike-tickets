@@ -14,7 +14,7 @@ git fetch --tags
 commit_lines=$(git log --pretty=%b $oldest_commit..$newest_commit | grep -Po "(resolve|end) (#\d+,?)+") # sed removes empty lines
 
 echo "########################"
-echo "> search commit between $last_tag and $head_tag"
+echo "> search commit between $oldest_commit and $newest_commit"
 echo "- found:"
 printf "$commit_lines \n"
 echo "########################"
