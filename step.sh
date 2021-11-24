@@ -11,7 +11,10 @@ fi
 # Get interesting infos from commit log #
 #########################################
 git fetch --tags
-commit_lines=$(git log --pretty=%b $oldest_commit..$newest_commit | grep -Po "(resolve|end) (#\d+,?)+") # sed removes empty lines
+#MacOS does not support grep -P....  💩
+#commit_lines=$(git log --pretty=%b $oldest_commit..$newest_commit | grep -Po "(resolve|end) (#\d+,?)+") # sed removes empty lines
+commit_lines=$(git log --pretty=%b $oldest_commit..$newest_commit | perl -nle'print if m{(resolve|end) (#\d+,?)+}'
+
 
 echo "########################"
 echo "> search commit between $oldest_commit and $newest_commit"
