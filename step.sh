@@ -13,7 +13,7 @@ fi
 git fetch --tags
 #MacOS does not support grep -P....  💩
 #commit_lines=$(git log --pretty=%b $oldest_commit..$newest_commit | grep -Po "(resolve|end) (#\d+,?)+") # sed removes empty lines
-commit_lines=$(git log --pretty=%b $oldest_commit..$newest_commit | perl -nle'print if m{(resolve|end) (#\d+,?)+}'
+commit_lines=$(git log --pretty=%b $oldest_commit..$newest_commit | perl -nle'print if m{(resolve|end) (#\d+,?)+}')
 
 
 echo "########################"
