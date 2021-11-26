@@ -35,11 +35,11 @@ for commit in ${commit_lines}; do
     echo "-------------------------"
     echo "> PARSE :" $commit
     #extract method
-    method=$(echo $commit | grep -Po "(resolve|end)" )
+    method=$(echo $commit | perl -nle'(resolve|end)' )
     echo "- method =" $method
 
     #extract ids
-    id_str=$(echo $commit | grep -Po "(#\d+,?)+")
+    id_str=$(echo $commit | perl -nle'(#\d+,?)+')
     echo "- ids =" $id_str
 
     if [ -z "$method" ] || [ -z "$id_str" ]; then
@@ -56,7 +56,7 @@ for commit in ${commit_lines}; do
             --data-urlencode "permalink=https://www.wrike.com/open.htm?id=${permalink_id//#/}"
         )
 	custom_status=$(echo "$task_json" | perl -nle'(?<="customStatusId": ").*?[^\\](?=")')
-   	id=$(echo "$task_json" | grep -Po '(?<="id": ").*?[^\\](?=")')
+   	id=$(echo "$task_json" | perl -nle'(?<="id": ").*?[^\\](?=")')
         if [ "$method" = "end" ] && [ "$custom_status" = "$end_required_status_id" ]; then
             end_ids="$end_ids$id,"
         elif [ $method = "resolve" ] && [ "$custom_status" = "$resolve_required_status_id" ]; then
