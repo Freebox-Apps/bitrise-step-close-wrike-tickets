@@ -55,8 +55,8 @@ for commit in ${commit_lines}; do
             "https://www.wrike.com/api/v4/tasks" \
             --data-urlencode "permalink=https://www.wrike.com/open.htm?id=${permalink_id//#/}"
         )
-	      custom_status=$(echo "$task_json" | grep -Po '(?<="customStatusId": ").*?[^\\](?=")')
-   	    id=$(echo "$task_json" | grep -Po '(?<="id": ").*?[^\\](?=")')
+	custom_status=$(echo "$task_json" | perl -nle'(?<="customStatusId": ").*?[^\\](?=")')
+   	id=$(echo "$task_json" | grep -Po '(?<="id": ").*?[^\\](?=")')
         if [ "$method" = "end" ] && [ "$custom_status" = "$end_required_status_id" ]; then
             end_ids="$end_ids$id,"
         elif [ $method = "resolve" ] && [ "$custom_status" = "$resolve_required_status_id" ]; then
@@ -118,7 +118,7 @@ versions=$(curl -s -g -G -X GET \
     -H "Authorization: bearer $wrike_token" \
     "https://www.wrike.com/api/v4/customfields/$reviewed_version_custom_field_id" \
     | tr -d '\n' \
-    | grep -Po '(?<="values": \[).*?[^\\](?=\])'
+    | perl -nle'(?<="values": \[).*?[^\\](?=\])'
 )
 
 result=$(curl -s -g -G -X PUT \
