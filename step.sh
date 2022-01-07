@@ -6,6 +6,9 @@ if [ -z "$wrike_token" ]; then
     exit 1
 fi
 
+if "$is_debug" = "true"; then
+    echo "## DEBUG MODE ##"
+fi
 
 #########################################
 # Get interesting infos from commit log #
@@ -13,7 +16,7 @@ fi
 git fetch --tags
 #MacOS does not support grep -P....  💩
 #commit_lines=$(git log --pretty=%b $oldest_commit..$newest_commit | grep -Po "(resolve|end) (#\d+,?)+") # sed removes empty lines
-commit_lines=$(git log --pretty=%b $oldest_commit..$newest_commit | perl -nle'print if m{(resolve|end) (#\d+,?)+}')
+commit_lines=$(git log --pretty=%b $oldest_commit..$newest_commit | perl -nle'print $& while m{(resolve|end) (#\d+,?)+}g')
 
 
 echo "########################"
@@ -35,11 +38,11 @@ for commit in ${commit_lines}; do
     echo "-------------------------"
     echo "> PARSE :" $commit
     #extract method
-    method=$(echo $commit | perl -nle'(resolve|end)' )
+    method=$(echo $commit | perl -nle'print $& while m{(resolve|end)}g')
     echo "- method =" $method
 
     #extract ids
-    id_str=$(echo $commit | perl -nle'(#\d+,?)+')
+    id_str=$(echo $commit | perl -nle'print $& while m{(#\d+,?)+}g')
     echo "- ids =" $id_str
 
     if [ -z "$method" ] || [ -z "$id_str" ]; then
@@ -55,11 +58,15 @@ for commit in ${commit_lines}; do
             "https://www.wrike.com/api/v4/tasks" \
             --data-urlencode "permalink=https://www.wrike.com/open.htm?id=${permalink_id//#/}"
         )
-	custom_status=$(echo "$task_json" | perl -nle'(?<="customStatusId": ").*?[^\\](?=")')
-   	id=$(echo "$task_json" | perl -nle'(?<="id": ").*?[^\\](?=")')
+        if "$is_debug" = "true"; then
+            echo "- result :" $task_json
+        fi
+	custom_status=$(echo "$task_json" | perl -nle'print $& while m{(?<="customStatusId": ").*?[^\\](?=")}g')
+        echo "- customStatus =" $custom_status
+   	id=$(echo "$task_json" | perl -nle'print $& while m{(?<="id": ").*?[^\\](?=")}g')
         if [ "$method" = "end" ] && [ "$custom_status" = "$end_required_status_id" ]; then
             end_ids="$end_ids$id,"
-        elif [ $method = "resolve" ] && [ "$custom_status" = "$resolve_required_status_id" ]; then
+        elif [ "$method" = "resolve" ] && [ "$custom_status" = "$resolve_required_status_id" ]; then
             resolve_ids="$resolve_ids$id,"
         else
             echo "/!\ skipped because task status is unexpected"
@@ -83,8 +90,8 @@ function resolve_task {
     IFS=','
     read -ra ADDR <<< "$1" # str is read into an array as tokens separated by IFS
     for task_id in "${ADDR[@]}"; do # access each element of array
-        echo "- $task_id" 
-        result=$(curl -g -G -X PUT \
+        echo "- $task_id"
+        result=$(curl -s -g -G -X PUT \
             -H "Authorization: bearer $wrike_token" \
             "https://www.wrike.com/api/v4/tasks/$task_id" \
             -d customStatus=$2 \
@@ -118,7 +125,7 @@ versions=$(curl -s -g -G -X GET \
     -H "Authorization: bearer $wrike_token" \
     "https://www.wrike.com/api/v4/customfields/$reviewed_version_custom_field_id" \
     | tr -d '\n' \
-    | perl -nle'(?<="values": \[).*?[^\\](?=\])'
+    | perl -nle'print $& while m{(?<="values": \[).*?[^\\](?=\])}g'
 )
 
 result=$(curl -s -g -G -X PUT \

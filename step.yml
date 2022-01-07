@@ -140,4 +140,14 @@ inputs:
         You can find all custom fields by calling Wrike customfields API : https://www.wrike.com/api/v4/customfields
       is_expand: true
       is_required: true
+  - is_debug: "false"
+    opts:
+      category: Debug
+      title: "Enable Debug Mode"
+      summary: The step will print more verbose logs if enabled.
+      description: The step will print more verbose logs if enabled.
+      is_required: true
+      value_options:
+        - "false"
+        - "true"
 outputs:
