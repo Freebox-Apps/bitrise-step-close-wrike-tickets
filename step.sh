@@ -9,11 +9,19 @@ fi
 if "$is_debug" = "true"; then
     set -x
     echo "## DEBUG MODE ##"
+    
+    echo "# Git version :
+    git --version
+    echo "# Start commit :"
+    git show $oldest_commit
+    echo "# End commit :"
+    git show $newest_commit
 fi
 
 #########################################
 # Get interesting infos from commit log #
 #########################################
+
 git fetch --tags
 #MacOS does not support grep -P....  💩
 #commit_lines=$(git log --pretty=%b $oldest_commit..$newest_commit | grep -Po "(resolve|end) (#\d+,?)+") # sed removes empty lines
