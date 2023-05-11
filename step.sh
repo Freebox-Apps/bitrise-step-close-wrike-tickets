@@ -7,6 +7,7 @@ if [ -z "$wrike_token" ]; then
 fi
 
 if "$is_debug" = "true"; then
+    set -x
     echo "## DEBUG MODE ##"
 fi
 
