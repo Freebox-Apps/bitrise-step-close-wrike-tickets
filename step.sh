@@ -10,7 +10,7 @@ if "$is_debug" = "true"; then
     set -x
     echo "## DEBUG MODE ##"
     
-    echo "# Git version :
+    echo "# Git version :"
     git --version
     echo "# Start commit :"
     git show $oldest_commit
