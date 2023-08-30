@@ -25,7 +25,7 @@ fi
 git fetch --tags --quiet
 #MacOS does not support grep -P....  💩
 #commit_lines=$(git log --pretty=%b $oldest_commit..$newest_commit | grep -Po "(resolve|end) (#\d+,?)+") # sed removes empty lines
-commit_lines=$(git log --pretty=%b "${oldest_commit}"..."${newest_commit}" | perl -nle'print $& while m{(resolve|end) (#\d+,?)+}g')
+commit_lines=$(git log --pretty=%b "${oldest_commit}".."${newest_commit}" | perl -nle'print $& while m{(resolve|end) (#\d+,?)+}g')
 
 
 echo "########################"
