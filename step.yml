@@ -90,20 +90,33 @@ inputs:
       category: Wrike fields
       description: |
         Wrike ID of the new status to apply to tasks referenced with "resolve" keyword.
-         
+        
         You can find all statuses by calling Wrike workflows API : https://www.wrike.com/api/v4/workflows
       is_expand: true
       is_required: true
   - end_status_id: IEACSBN3JMBFHZV6
     opts:
-      title: End status ID
+      title: End status default ID
       category: Wrike fields
       description: |
-        Wrike ID of the new status to apply to tasks referenced with "end" keyword.
-         
+        Wrike ID of the new status to apply to tasks referenced with "end" keyword when the task type is not specified in.
+        
         You can find all statuses by calling Wrike workflows API : https://www.wrike.com/api/v4/workflows
       is_expand: true
       is_required: true
+  - end_status_ids: '{"Data": "IEACSBN3JME5GQOS"}'
+    opts:
+      title: End status IDs
+      category: Wrike fields
+      description: |
+        Map of Wrike IDs of the new status to apply to tasks referenced with "end" keyword depending on its type.
+        Must be a valid JSON object with task type as keys and ids as values.
+        
+        eg. {"Data": "ABCDEFG12345", "UI": "ASDFGHJ0987"}
+        
+        You can find all statuses by calling Wrike workflows API : https://www.wrike.com/api/v4/workflows
+      is_expand: true
+      is_required: false
   - resolve_required_status_id: IEACSBN3JMBNYV2C
     opts:
       title: Resolve required status ID
