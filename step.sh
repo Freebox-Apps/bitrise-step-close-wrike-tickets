@@ -1,13 +1,27 @@
 #!/bin/bash
 #set -x
 
+wrike_token="eyJ0dCI6InAiLCJhbGciOiJIUzI1NiIsInR2IjoiMSJ9.eyJkIjoie1wiYVwiOjI2ODg0NDMsXCJpXCI6NzA3OTgwMCxcImNcIjo0NjE5NTkwLFwidVwiOjYzNjU3MDIsXCJyXCI6XCJVU1wiLFwic1wiOltcIldcIixcIkZcIixcIklcIixcIlVcIixcIktcIixcIkNcIixcIkRcIixcIkFcIixcIkxcIixcIlBcIl0sXCJ6XCI6W10sXCJ0XCI6MH0iLCJpYXQiOjE1OTExMDgyMzR9.sJf-6TeCLOvFfpoygdIpc_PdZ6xYAczAwNqHSSNOTjU"
+is_debug="true"
+
+oldest_commit="ba6d8dd57e2eef563a4cd7ffef4e7b0c9546c802"
+newest_commit="HEAD"
+
+resolve_status_id="prout"
+end_status_id="IEACSBN3JMBFHZV6"
+resolve_required_status_id="prout"
+end_required_status_id="IEACSBN3JMBFKB52"
+resolved_version_custom_field_id="prout"
+reviewed_version_custom_field_id="prout"
+
+
 if [ -z "$wrike_token" ]; then
     echo "Error: Missing Wrike token !"
     exit 1
 fi
 
 if "$is_debug" = "true"; then
-    set -x
+#    set -x
     echo "## DEBUG MODE ##"
     
     echo "# Git version :"
@@ -65,14 +79,20 @@ for commit in ${commit_lines}; do
         task_json=$(curl -s -g -G -X GET \
             -H "Authorization: bearer $wrike_token" \
             "https://www.wrike.com/api/v4/tasks" \
-            --data-urlencode "permalink=https://www.wrike.com/open.htm?id=${permalink_id//#/}"
+            --data-urlencode "permalink=https://www.wrike.com/open.htm?id=${permalink_id//#/}" \
+            --data-urlencode 'fields=["customFields"]'
         )
+        
         if "$is_debug" = "true"; then
             echo "- result :" $task_json
         fi
-	custom_status=$(echo "$task_json" | perl -nle'print $& while m{(?<="customStatusId": ").*?[^\\](?=")}g')
+	      custom_status=$(echo "$task_json" | perl -nle'print $& while m{(?<="customStatusId": ").*?[^\\](?=")}g')
         echo "- customStatus =" $custom_status
-   	id=$(echo "$task_json" | perl -nle'print $& while m{(?<="id": ").*?[^\\](?=")}g')
+   	    id=$(echo "$task_json" | perl -nle'print $& while m{(?<="id": ").*?[^\\](?=")}g')
+   	    tasktype=$(echo "$task_json" | perl -nle'print $& while m{(?<="id": "IEACSBN3JUAGW7JD",).*?[^\\](?=})}g')
+   	    
+   	    echo "- task type :" $tasktype
+   	    
         if [ "$method" = "end" ] && [ "$custom_status" = "$end_required_status_id" ]; then
             end_ids="$end_ids$id,"
         elif [ "$method" = "resolve" ] && [ "$custom_status" = "$resolve_required_status_id" ]; then
@@ -126,6 +146,8 @@ fi
 ######################################
 # update reviewed version value list #
 ######################################
+
+exit 0
 
 echo "########################"
 echo "> update version list"
