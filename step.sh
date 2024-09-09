@@ -12,6 +12,7 @@ if "$is_debug" = "true"; then
     echo "# Git version :" $(git --version)
     echo "# Start commit :" $oldest_commit
     echo "# End commit :" $newest_commit
+    echo "# Bash version :" $(bash --version)
 fi
 
 if command -v jq &> /dev/null; then
