@@ -9,14 +9,28 @@ fi
 if "$is_debug" = "true"; then
     set -x
     echo "## DEBUG MODE ##"
-    
-    echo "# Git version :"
-    git --version
-    echo "# Start commit :"
-    git show $oldest_commit
-    echo "# End commit :"
-    git show $newest_commit
+    echo "# Git version :" $(git --version)
+    echo "# Start commit :" $oldest_commit
+    echo "# End commit :" $newest_commit
+    echo "# Bash version :" $(bash --version)
 fi
+
+if command -v jq &> /dev/null; then
+    if "$is_debug" = "true"; then
+        echo "# jq version :" $(jq --version)
+    fi
+else
+    echo "jq n'est pas installé !"
+    exit 1
+fi
+
+declare -A end_status_ids_map
+types=$(echo "$end_status_ids" | jq -r 'keys[]')
+for type in $types; do
+    end_status_ids_map["$type"]=$(echo "$end_status_ids" | jq -r ".$type")
+done
+end_status_ids_map["default"]=$end_status_id
+
 
 #########################################
 # Get interesting infos from commit log #
@@ -42,6 +56,8 @@ echo "########################"
 end_ids=""
 resolve_ids=""
 
+declare -A end_ids_map
+
 IFS=$'\n'
 for commit in ${commit_lines}; do
     echo "-------------------------"
@@ -65,16 +81,28 @@ for commit in ${commit_lines}; do
         task_json=$(curl -s -g -G -X GET \
             -H "Authorization: bearer $wrike_token" \
             "https://www.wrike.com/api/v4/tasks" \
-            --data-urlencode "permalink=https://www.wrike.com/open.htm?id=${permalink_id//#/}"
+            --data-urlencode "permalink=https://www.wrike.com/open.htm?id=${permalink_id//#/}" \
+            --data-urlencode 'fields=["customFields"]'
         )
+
+        task_json=$(echo "$task_json" | jq '.data[0]')
+
         if "$is_debug" = "true"; then
             echo "- result :" $task_json
         fi
-	custom_status=$(echo "$task_json" | perl -nle'print $& while m{(?<="customStatusId": ").*?[^\\](?=")}g')
+
+	custom_status=$(echo "$task_json" | jq -r '.customStatusId')
         echo "- customStatus =" $custom_status
-   	id=$(echo "$task_json" | perl -nle'print $& while m{(?<="id": ").*?[^\\](?=")}g')
+   	    id=$(echo "$task_json" | jq -r '.id')
+   	    tasktype=$(echo "$task_json" | jq -r '.customFields[] | select(.id == "IEACSBN3JUAGW7JD").value')
+
+   	    echo "- task type :" $tasktype
+   	    if [ -z "$tasktype" ]; then
+            tasktype="default"
+        fi
+
         if [ "$method" = "end" ] && [ "$custom_status" = "$end_required_status_id" ]; then
-            end_ids="$end_ids$id,"
+            end_ids_map["$tasktype"]="${end_ids_map[$tasktype]}$id,"
         elif [ "$method" = "resolve" ] && [ "$custom_status" = "$resolve_required_status_id" ]; then
             resolve_ids="$resolve_ids$id,"
         else
@@ -88,7 +116,10 @@ done
 IFS=' '
 
 echo "########################"
-echo "Extracted end ids : $end_ids"
+echo "Extracted end ids :"
+for type in "${!end_ids_map[@]}"; do
+    echo " - $type : ${end_ids_map[$type]}"
+done
 echo "Extracted resolve ids : $resolve_ids"
 
 #################
@@ -113,15 +144,18 @@ function resolve_task {
 
 if [ ! -z "$resolve_ids" ]; then
     echo "########################"
-    echo "> resolve tasks"
+    echo "> resolve tasks with status id $resolve_status_id"
     resolve_task $resolve_ids $resolve_status_id
 fi
 
-if [ ! -z "$end_ids" ]; then
-    echo "########################"
-    echo "> end tasks"
-    resolve_task $end_ids $end_status_id
-fi
+
+for type in "${!end_ids_map[@]}"; do
+    if [ ! -z "${end_ids_map[$type]}" ]; then
+        echo "########################"
+        echo "> end tasks of type $type with status id ${end_status_ids_map[$type]}"
+        resolve_task ${end_ids_map[$type]} ${end_status_ids_map[$type]}
+    fi
+done
 
 ######################################
 # update reviewed version value list #
